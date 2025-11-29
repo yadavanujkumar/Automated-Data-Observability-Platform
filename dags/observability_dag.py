@@ -74,6 +74,10 @@ def get_simulated_sales_data() -> pd.DataFrame:
     now = datetime.now()
 
     # Create simulated data with some NULL values in amount column
+    # Generate records spread throughout the current day (every 15 minutes)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    hours_elapsed = (now - today_start).total_seconds() / 3600
+
     data = {
         "id": list(range(1, 101)),
         "amount": [
@@ -90,7 +94,7 @@ def get_simulated_sales_data() -> pd.DataFrame:
         ]
         * 10,
         "created_at": [
-            now - timedelta(hours=i * 0.5) for i in range(100)
+            now - timedelta(hours=i * hours_elapsed / 100) for i in range(100)
         ],
     }
 
@@ -113,7 +117,7 @@ def run_observability_checks() -> dict[str, float]:
     3. Quality/Nulls: Percentage of NULL values in the amount column
 
     Returns:
-        dict: Dictionary containing the three observability metrics
+        dict: Dictionary containing the three observability metrics (all as floats)
     """
     # Get database connection (simulated)
     get_database_connection()
@@ -143,7 +147,7 @@ def run_observability_checks() -> dict[str, float]:
 
     metrics = {
         "data_freshness_hours": round(freshness_hours, 2),
-        "data_volume_rows": volume_rows,
+        "data_volume_rows": float(volume_rows),
         "data_null_percentage": round(null_percentage, 2),
     }
 
